@@ -1,5 +1,6 @@
 import pygame
 import random
+import collections
 from enum import Enum
 from collections import namedtuple
 import numpy as np
@@ -150,3 +151,78 @@ class SnakeGameAI:
             y -= BLOCK_SIZE
 
         self.head = Point(x, y)
+
+    def _calc_open_spaces(self, start_pos):
+        """Function to calculate the number of open spaces around the snake
+
+        An open space is a space that the snake can reach without being blocked off by
+        the wall or its own body.
+
+        Arguments:
+            start_pos: A tuple in (row,column) format representing a position of the snake's head
+
+        Returns:
+            An integer of how many open spaces are available.
+        """
+        open_spaces = 0
+
+        start_y = start_pos.y
+        start_x = start_pos.x
+
+        # If the start position is in the snake's body or out of bounds
+        if start_pos in self.snake[1:] or (
+                start_x < 0 or start_x >= self.w or start_y < 0 or start_y >= self.h):
+            # no open spaces
+            return 0
+
+        # Breadth first search is used
+
+        # Create a set to represent th visited spaces
+        visited = {start_pos}
+        # Create a queue to keep track of which spaces need to be expanded
+        queue = collections.deque((start_y, start_x))
+
+        # While there are still unvisited open spaces to search from
+        while len(queue) > 0:
+
+            cur = queue.popleft()
+
+            possible_moves = self._get_possible_moves(cur)
+
+            for move in possible_moves:
+                if move not in visited:
+
+                    visited.add(move)
+
+                    # if the move is an open space
+                    if move not in self.snake[1:]:
+                        open_spaces += 1
+                        # add the open space to the queue for further searching
+                        queue.append(move)
+
+        return open_spaces
+
+    def _get_possible_moves(self, cur):
+        """Function to get all the possible adjacent moves from a position.
+
+        The function is called from calc_open_spaces() during the breadth first search.
+
+        Arguments:
+            cur: A tuple in (row,column) format representing the position
+            to get the next possible moves from.
+
+        Returns:
+            A list containing (row,column) tuples of all the possible adjacent moves.
+        """
+        point_y = int(cur.y)
+        point_x = int(cur.x)
+        adjacent_spaces = [(point_y, point_x - 1), (point_y - 1, point_x),
+                           (point_y, point_x + 1), (point_y + 1, point_x)]
+        possible_moves = []
+        for move in adjacent_spaces:
+            move_y = move[1]
+            move_x = move[0]
+            # If the move is not out of bounds
+            if 0 <= move_x < self.w and 0 <= move_y < self.h:
+                possible_moves.append(move)
+        return possible_moves
