@@ -1,3 +1,4 @@
+
 import torch
 import random
 import numpy as np
@@ -6,7 +7,7 @@ from game import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
 
-MAX_MEMORY = 100_000
+MAX_MEMORY = 1_000_000
 BATCH_SIZE = 1000
 LR = 0.001
 
@@ -23,34 +24,67 @@ class Agent:
 
     def get_state(self, game):
         head = game.snake[0]
-        point_l = Point(head.x - 20, head.y)
-        point_r = Point(head.x + 20, head.y)
-        point_u = Point(head.x, head.y - 20)
-        point_d = Point(head.x, head.y + 20)
+        # get nearby points in cols and rows
+        point_l = Point(head.x / 20 - 1, head.y / 20)
+        point_r = Point(head.x / 20 + 1, head.y / 20)
+        point_u = Point(head.x / 20, head.y / 20 - 1)
+        point_d = Point(head.x / 20, head.y / 20 + 1)
 
         dir_l = game.direction == Direction.LEFT
         dir_r = game.direction == Direction.RIGHT
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
 
+        const = (game.rows * game.cols) - len(game.snake) / (game.rows * game.cols)
+        open_spaces_left = game.calc_open_spaces(point_l) / const
+        open_spaces_up = game.calc_open_spaces(point_u) / const
+        open_spaces_right = game.calc_open_spaces(point_r) / const
+        open_spaces_down = game.calc_open_spaces(point_d) / const
+
+        # transform open_spaces values to True of False
+        if (open_spaces_left == max([open_spaces_left, open_spaces_up, open_spaces_right, open_spaces_down])
+                and open_spaces_left != 0):
+            os_l = True
+        else:
+            os_l = False
+
+        if (open_spaces_up == max([open_spaces_left, open_spaces_up, open_spaces_right, open_spaces_down])
+                and open_spaces_up != 0):
+            os_u = True
+        else:
+            os_u = False
+
+        if (open_spaces_right == max([open_spaces_left, open_spaces_up, open_spaces_right, open_spaces_down])
+                and open_spaces_right != 0):
+            os_r = True
+        else:
+            os_r = False
+
+        if (open_spaces_down == max([open_spaces_left, open_spaces_up, open_spaces_right, open_spaces_down])
+                and open_spaces_down != 0):
+            os_d = True
+        else:
+            os_d = False
+
         state = [
+
             # Danger straight
-            (dir_r and game.is_collision(point_r)) or
-            (dir_l and game.is_collision(point_l)) or
-            (dir_u and game.is_collision(point_u)) or
-            (dir_d and game.is_collision(point_d)),
+            (dir_r and not os_r) or
+            (dir_l and not os_l) or
+            (dir_u and not os_u) or
+            (dir_d and not os_d),
 
             # Danger right
-            (dir_u and game.is_collision(point_r)) or
-            (dir_d and game.is_collision(point_l)) or
-            (dir_l and game.is_collision(point_u)) or
-            (dir_r and game.is_collision(point_d)),
+            (dir_u and not os_r) or
+            (dir_d and not os_l) or
+            (dir_l and not os_u) or
+            (dir_r and not os_d),
 
             # Danger left
-            (dir_d and game.is_collision(point_r)) or
-            (dir_u and game.is_collision(point_l)) or
-            (dir_r and game.is_collision(point_u)) or
-            (dir_l and game.is_collision(point_d)),
+            (dir_d and not os_r) or
+            (dir_u and not os_l) or
+            (dir_r and not os_u) or
+            (dir_l and not os_d),
 
             # Move direction
             dir_l,
