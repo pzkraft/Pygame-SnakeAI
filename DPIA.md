@@ -38,11 +38,9 @@ This Data Protection Impact Assessment (DPIA) evaluates the data protection impl
   * Member status (active/deleted)
   * Last read message references
 - Message Images
-  * UUID-based unique identifiers
+  * Protected access based on user permissions
   * Original and thumbnail versions
   * Size restrictions (max 3840x2160)
-  * Access through UUID-based URLs
-  * No direct user association in storage
 
 **AI Interaction Data:**
 - Conversation Threads
@@ -55,22 +53,9 @@ This Data Protection Impact Assessment (DPIA) evaluates the data protection impl
   * AI responses
   * Timestamps
   * Message status
-- No message deletion
-  * Soft deletion only (hidden flag)
-  * All history preserved
-  * Access controlled
-
-**File Data:**
-- Uploaded Documents
-  * Document content
-  * File metadata
-  * Upload timestamp
-  * User association
-- File Restrictions
-  * Type limitations
-  * Size constraints
-  * Purpose validation
-  * Access controls
+  * Soft deletion (hidden flag)
+  * All history preserved only for 6 months
+  * Protected access based on user permissions
 
 **System Data:**
 - Access Logs
@@ -81,6 +66,7 @@ This Data Protection Impact Assessment (DPIA) evaluates the data protection impl
   * Response times
   * Resource usage
   * Error rates
+  Preserving for 6 months
 
 #### 1.2 Nature, Scope, and Context of Processing
 
